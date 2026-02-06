@@ -13,7 +13,6 @@ def main():
             sorted_shows,
             [
                 "followed",
-                "last_seen",
                 "next_aired",
                 "diffusion",
                 "folder",

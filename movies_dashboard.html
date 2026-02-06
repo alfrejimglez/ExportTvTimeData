@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard de Pelis y Series</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0f1220;
+        --bg-soft: #171a2b;
+        --card: #111628;
+        --card-2: #141b33;
+        --ink: #f5f4f0;
+        --muted: #aeb2c3;
+        --accent: #ffb347;
+        --accent-2: #67d2ff;
+        --accent-3: #ff6b6b;
+        --accent-4: #7cf3a0;
+        --ring: rgba(255, 179, 71, 0.35);
+        --shadow: 0 20px 60px rgba(5, 7, 20, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(1200px 800px at 15% -10%, #2b2f4a 0%, transparent 60%),
+          radial-gradient(900px 700px at 120% 10%, #36203c 0%, transparent 55%),
+          linear-gradient(135deg, #0b0e1a 0%, #0f1220 100%);
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 64px 6vw 32px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+
+      .title {
+        max-width: 680px;
+      }
+
+      .title h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.4rem, 3vw, 3.6rem);
+        margin: 0 0 12px;
+        letter-spacing: 0.02em;
+      }
+
+      .title p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.6;
+      }
+
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(120deg, #1f243b, #131726);
+        color: var(--ink);
+        padding: 12px 18px;
+        border-radius: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .button:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .file-input {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .file-input input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      main {
+        padding: 0 6vw 80px;
+        display: grid;
+        gap: 28px;
+      }
+
+      .stats {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(220px 120px at 80% 0%, rgba(255, 179, 71, 0.16), transparent 70%);
+        pointer-events: none;
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 0.95rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+
+      .card p {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+
+      .compare {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr);
+      }
+
+      .compare .card {
+        background: var(--card-2);
+      }
+
+      .bar {
+        height: 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        margin-top: 10px;
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+
+      .years {
+        display: grid;
+        gap: 20px;
+      }
+
+      .series {
+        display: grid;
+        gap: 20px;
+      }
+
+      .series-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+
+      .series-card {
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .series-card h4 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+      }
+
+      .series-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .tag {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+      }
+
+      .year-section {
+        background: linear-gradient(135deg, rgba(17, 22, 40, 0.96), rgba(22, 28, 50, 0.92));
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+        padding: 20px;
+      }
+
+      .year-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .year-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        letter-spacing: 0.03em;
+      }
+
+      .year-header span {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .movie-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .movie {
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .movie h4 {
+        margin: 0 0 6px;
+        font-size: 0.98rem;
+      }
+
+      .movie p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .chip {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 0.85rem;
+        color: var(--muted);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 840px) {
+        header {
+          padding: 40px 6vw 20px;
+        }
+        .compare {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="title">
+        <h1>Mi registro de pelis y series</h1>
+        <p>
+          Un resumen general de tus pelis y series. Carga los archivos para ver
+          estadisticas y el detalle por ano.
+        </p>
+      </div>
+      <div class="controls">
+        <div class="button file-input">
+          Cargar movies.json
+          <input type="file" id="moviesInput" accept="application/json" />
+        </div>
+        <div class="button file-input">
+          Cargar dataTVTime.csv
+          <input type="file" id="seriesInput" accept="text/csv" />
+        </div>
+        <button class="button" id="reloadBtn" type="button">Reintentar carga</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="stats">
+        <div class="card">
+          <h3>Total items</h3>
+          <p id="totalItems">--</p>
+        </div>
+        <div class="card">
+          <h3>Pelis vistas</h3>
+          <p id="movieCount">--</p>
+        </div>
+        <div class="card">
+          <h3>Series seguidas</h3>
+          <p id="seriesCount">--</p>
+        </div>
+        <div class="card">
+          <h3>Episodios vistos</h3>
+          <p id="episodeCount">--</p>
+        </div>
+      </section>
+
+      <section class="compare">
+        <div class="card">
+          <h3>Comparativa 2023 vs 2024 (pelis)</h3>
+          <p id="compareText">--</p>
+          <div class="bar"><span id="compareBar" style="width: 0%"></span></div>
+        </div>
+        <div class="card">
+          <h3>Distribucion por ano (pelis)</h3>
+          <div id="chips" class="chips"></div>
+        </div>
+      </section>
+
+      <section class="years" id="years"></section>
+
+      <section class="series" id="series"></section>
+
+      <p class="status" id="statusMsg">Intentando cargar movies.json y dataTVTime.csv automaticamente...</p>
+    </main>
+
+    <script>
+      const statusMsg = document.getElementById("statusMsg");
+      const moviesInput = document.getElementById("moviesInput");
+      const seriesInput = document.getElementById("seriesInput");
+      const reloadBtn = document.getElementById("reloadBtn");
+      const totalItems = document.getElementById("totalItems");
+      const movieCount = document.getElementById("movieCount");
+      const seriesCount = document.getElementById("seriesCount");
+      const episodeCount = document.getElementById("episodeCount");
+      const compareText = document.getElementById("compareText");
+      const compareBar = document.getElementById("compareBar");
+      const chips = document.getElementById("chips");
+      const yearsContainer = document.getElementById("years");
+      const seriesContainer = document.getElementById("series");
+
+      const state = {
+        movies: [],
+        series: []
+      };
+
+      const formatDate = (iso) => {
+        if (!iso) return "Sin fecha";
+        const date = new Date(iso);
+        return date.toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "short",
+          day: "2-digit"
+        });
+      };
+
+      const getYear = (movie) => {
+        const value = movie.watched_at || movie.created_at;
+        if (!value) return "Sin fecha";
+        return new Date(value).getFullYear();
+      };
+
+      const groupByYear = (movies) => {
+        const groups = new Map();
+        movies.forEach((movie) => {
+          if (movie.is_watched === false) return;
+          const year = getYear(movie);
+          if (!groups.has(year)) groups.set(year, []);
+          groups.get(year).push(movie);
+        });
+        return groups;
+      };
+
+      const renderStats = (groups) => {
+        const years = Array.from(groups.keys()).filter((y) => y !== "Sin fecha");
+        years.sort((a, b) => b - a);
+        const totalMovies = Array.from(groups.values()).reduce((sum, list) => sum + list.length, 0);
+
+        const totalSeries = state.series.length;
+        const totalEpisodes = state.series.reduce((sum, serie) => sum + (Number(serie.seen_episodes) || 0), 0);
+        const totalAll = totalMovies + totalSeries;
+
+        totalItems.textContent = totalAll || "--";
+        movieCount.textContent = totalMovies || "--";
+        seriesCount.textContent = totalSeries || "--";
+        episodeCount.textContent = totalEpisodes || "--";
+
+        const y2023 = groups.get(2023)?.length || 0;
+        const y2024 = groups.get(2024)?.length || 0;
+        const diff = y2024 - y2023;
+        if (y2023 === 0 && y2024 === 0) {
+          compareText.textContent = "No hay datos en 2023 o 2024";
+          compareBar.style.width = "0%";
+        } else {
+          const winner = y2024 === y2023 ? "Empate" : y2024 > y2023 ? "2024" : "2023";
+          const max = Math.max(y2023, y2024);
+          const pct = max ? Math.round((Math.abs(diff) / max) * 100) : 0;
+          compareText.textContent = `${winner} por ${Math.abs(diff)} peliculas (2023: ${y2023}, 2024: ${y2024})`;
+          compareBar.style.width = `${Math.min(100, Math.max(10, pct))}%`;
+        }
+
+        chips.innerHTML = "";
+        years.forEach((year) => {
+          const chip = document.createElement("div");
+          chip.className = "chip";
+          chip.textContent = `${year}: ${groups.get(year).length}`;
+          chips.appendChild(chip);
+        });
+      };
+
+      const renderYears = (groups) => {
+        yearsContainer.innerHTML = "";
+        const entries = Array.from(groups.entries())
+          .filter(([year]) => year !== "Sin fecha")
+          .sort((a, b) => b[0] - a[0]);
+
+        entries.forEach(([year, list]) => {
+          const section = document.createElement("div");
+          section.className = "year-section";
+
+          const header = document.createElement("div");
+          header.className = "year-header";
+
+          const title = document.createElement("h2");
+          title.textContent = year;
+
+          const count = document.createElement("span");
+          count.textContent = `${list.length} peliculas`;
+
+          header.appendChild(title);
+          header.appendChild(count);
+
+          const grid = document.createElement("div");
+          grid.className = "movie-grid";
+
+          list
+            .slice()
+            .sort((a, b) => new Date(b.watched_at || b.created_at) - new Date(a.watched_at || a.created_at))
+            .forEach((movie) => {
+              const card = document.createElement("div");
+              card.className = "movie";
+
+              const name = document.createElement("h4");
+              name.textContent = movie.title || "Sin titulo";
+
+              const date = document.createElement("p");
+              date.textContent = formatDate(movie.watched_at || movie.created_at);
+
+              card.appendChild(name);
+              card.appendChild(date);
+              grid.appendChild(card);
+            });
+
+          section.appendChild(header);
+          section.appendChild(grid);
+          yearsContainer.appendChild(section);
+        });
+      };
+
+      const renderAll = (movies, series) => {
+        state.movies = movies || state.movies;
+        state.series = series || state.series;
+        const groups = groupByYear(state.movies);
+        renderStats(groups);
+        renderYears(groups);
+        renderSeries(state.series);
+      };
+
+      const loadFromFile = (file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            statusMsg.textContent = `Cargado ${data.length} items desde archivo.`;
+            renderAll(Array.isArray(data) ? data : [], null);
+          } catch (error) {
+            statusMsg.textContent = "No se pudo leer el JSON.";
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      const parseCsv = (text) => {
+        const rows = [];
+        let current = "";
+        let row = [];
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i += 1) {
+          const char = text[i];
+          const next = text[i + 1];
+
+          if (char === '"') {
+            if (inQuotes && next === '"') {
+              current += '"';
+              i += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === "," && !inQuotes) {
+            row.push(current);
+            current = "";
+          } else if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (current !== "" || row.length) {
+              row.push(current);
+              rows.push(row);
+              row = [];
+              current = "";
+            }
+            if (char === "\r" && next === "\n") i += 1;
+          } else {
+            current += char;
+          }
+        }
+
+        if (current !== "" || row.length) {
+          row.push(current);
+          rows.push(row);
+        }
+
+        return rows;
+      };
+
+      const parseSeriesCsv = (text) => {
+        const rows = parseCsv(text).filter((row) => row.some((cell) => cell.trim() !== ""));
+        if (!rows.length) return [];
+        const header = rows[0].map((cell) => cell.trim());
+        return rows.slice(1).map((row) => {
+          const item = {};
+          header.forEach((key, idx) => {
+            item[key] = row[idx] ?? "";
+          });
+          return item;
+        });
+      };
+
+      const renderSeries = (series) => {
+        seriesContainer.innerHTML = "";
+        if (!series.length) return;
+
+        const section = document.createElement("div");
+        section.className = "year-section";
+
+        const header = document.createElement("div");
+        header.className = "year-header";
+
+        const title = document.createElement("h2");
+        title.textContent = "Series";
+
+        const count = document.createElement("span");
+        count.textContent = `${series.length} series`;
+
+        header.appendChild(title);
+        header.appendChild(count);
+
+        const grid = document.createElement("div");
+        grid.className = "series-grid";
+
+        series
+          .slice()
+          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          .forEach((serie) => {
+            const card = document.createElement("div");
+            card.className = "series-card";
+
+            const name = document.createElement("h4");
+            name.textContent = serie.name || "Sin titulo";
+
+            const progress = document.createElement("p");
+            const seen = Number(serie.seen_episodes) || 0;
+            const aired = Number(serie.aired_episodes) || 0;
+            progress.textContent = `Episodios: ${seen}/${aired || "?"}`;
+
+            const runtime = document.createElement("p");
+            runtime.textContent = `Duracion: ${serie.runtime || "?"} min`;
+
+            const status = document.createElement("span");
+            status.className = "tag";
+            status.textContent = serie.status || "Sin estado";
+
+            card.appendChild(name);
+            card.appendChild(progress);
+            card.appendChild(runtime);
+            card.appendChild(status);
+            grid.appendChild(card);
+          });
+
+        section.appendChild(header);
+        section.appendChild(grid);
+        seriesContainer.appendChild(section);
+      };
+
+      moviesInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) loadFromFile(file);
+      });
+
+      seriesInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = parseSeriesCsv(reader.result);
+            statusMsg.textContent = `Cargado ${data.length} series desde CSV.`;
+            renderAll(null, data);
+          } catch (error) {
+            statusMsg.textContent = "No se pudo leer el CSV.";
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      const tryAutoLoad = async () => {
+        try {
+          const [moviesResponse, seriesResponse] = await Promise.all([
+            fetch("movies.json"),
+            fetch("dataTVTime.csv")
+          ]);
+          if (!moviesResponse.ok) throw new Error("Fetch movies failed");
+          if (!seriesResponse.ok) throw new Error("Fetch series failed");
+          const [moviesData, seriesText] = await Promise.all([
+            moviesResponse.json(),
+            seriesResponse.text()
+          ]);
+          const seriesData = parseSeriesCsv(seriesText);
+          statusMsg.textContent = `Cargado ${moviesData.length} pelis y ${seriesData.length} series.`;
+          renderAll(Array.isArray(moviesData) ? moviesData : [], seriesData);
+        } catch (error) {
+          statusMsg.textContent = "Carga automatica fallida. Usa los botones para elegir los archivos.";
+        }
+      };
+
+      reloadBtn.addEventListener("click", () => {
+        tryAutoLoad();
+      });
+
+      tryAutoLoad();
+    </script>
+  </body>
+</html>
