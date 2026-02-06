@@ -34,6 +34,7 @@ class ExportTvTimeData:
         self.file_name_json = settings.OUTPUT_FOLDER.joinpath("data.json")
         self.file_name_csv = settings.OUTPUT_FOLDER.joinpath("dataTVTime.csv")
         self.tvtime_wrapper = None
+        settings.OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
         
     def __enter__(self):
         self.connect_to_tvtime()
