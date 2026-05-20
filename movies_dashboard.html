@@ -339,13 +339,18 @@
       </section>
 
       <section class="compare">
-        <div class="card">
-          <h3>Comparativa 2023 vs 2024 (pelis)</h3>
-          <p id="compareText">--</p>
-          <div class="bar"><span id="compareBar" style="width: 0%"></span></div>
+        <div class="card highlight-card">
+          <h3>Comparativa anual (pelis)</h3>
+          <p id="compareMoviesText">--</p>
+          <div class="bar big"><span id="compareMoviesBar" style="width: 0%"></span></div>
+        </div>
+        <div class="card highlight-card accent-2">
+          <h3>Comparativa anual (series)</h3>
+          <p id="compareSeriesText">--</p>
+          <div class="bar big accent-2"><span id="compareSeriesBar" style="width: 0%"></span></div>
         </div>
         <div class="card">
-          <h3>Distribucion por ano (pelis)</h3>
+          <h3>Distribución por año (pelis)</h3>
           <div id="chips" class="chips"></div>
         </div>
       </section>
@@ -357,6 +362,7 @@
       <p class="status" id="statusMsg">Intentando cargar movies.json y dataTVTime.csv automaticamente...</p>
     </main>
 
+
     <script>
       const statusMsg = document.getElementById("statusMsg");
       const moviesInput = document.getElementById("moviesInput");
@@ -366,8 +372,10 @@
       const movieCount = document.getElementById("movieCount");
       const seriesCount = document.getElementById("seriesCount");
       const episodeCount = document.getElementById("episodeCount");
-      const compareText = document.getElementById("compareText");
-      const compareBar = document.getElementById("compareBar");
+      const compareMoviesText = document.getElementById("compareMoviesText");
+      const compareMoviesBar = document.getElementById("compareMoviesBar");
+      const compareSeriesText = document.getElementById("compareSeriesText");
+      const compareSeriesBar = document.getElementById("compareSeriesBar");
       const chips = document.getElementById("chips");
       const yearsContainer = document.getElementById("years");
       const seriesContainer = document.getElementById("series");
@@ -404,6 +412,33 @@
         return groups;
       };
 
+
+      // Nueva función para comparar dos años y mostrar mensaje sintético
+      function getYearComparisonText(current, prev, label = "películas") {
+        if (current === prev) return `¡Empate! Mismo número de ${label} que el año anterior (${current})`;
+        if (current > prev) return `¡Subiste! En este año viste ${current - prev} ${label} más que el anterior (${current} vs ${prev})`;
+        return `Viste menos ${label}: ${prev - current} menos que el año anterior (${current} vs ${prev})`;
+      }
+
+      // Nueva función para obtener el año más reciente y el anterior
+      function getLastTwoYears(yearsArr) {
+        const sorted = yearsArr.filter(y => y !== "Sin fecha").sort((a, b) => b - a);
+        return [sorted[0], sorted[1]];
+      }
+
+      // Nueva función para comparar series por año
+      function getSeriesYearStats(series) {
+        const map = new Map();
+        series.forEach(s => {
+          let year = s.last_seen_at || s.created_at || s.updated_at;
+          if (!year) return;
+          year = new Date(year).getFullYear();
+          if (!map.has(year)) map.set(year, 0);
+          map.set(year, map.get(year) + 1);
+        });
+        return map;
+      }
+
       const renderStats = (groups) => {
         const years = Array.from(groups.keys()).filter((y) => y !== "Sin fecha");
         years.sort((a, b) => b - a);
@@ -418,19 +453,31 @@
         seriesCount.textContent = totalSeries || "--";
         episodeCount.textContent = totalEpisodes || "--";
 
-        const y2023 = groups.get(2023)?.length || 0;
-        const y2024 = groups.get(2024)?.length || 0;
-        const diff = y2024 - y2023;
-        if (y2023 === 0 && y2024 === 0) {
-          compareText.textContent = "No hay datos en 2023 o 2024";
-          compareBar.style.width = "0%";
-        } else {
-          const winner = y2024 === y2023 ? "Empate" : y2024 > y2023 ? "2024" : "2023";
-          const max = Math.max(y2023, y2024);
-          const pct = max ? Math.round((Math.abs(diff) / max) * 100) : 0;
-          compareText.textContent = `${winner} por ${Math.abs(diff)} peliculas (2023: ${y2023}, 2024: ${y2024})`;
-          compareBar.style.width = `${Math.min(100, Math.max(10, pct))}%`;
-        }
+        // Comparativa películas
+        const [lastYear, prevYear] = getLastTwoYears(years);
+        const lastCount = groups.get(lastYear)?.length || 0;
+        const prevCount = groups.get(prevYear)?.length || 0;
+        compareMoviesText.textContent = (lastYear && prevYear)
+          ? getYearComparisonText(lastCount, prevCount, "pelis") + ` (${lastYear} vs ${prevYear})`
+          : "No hay datos suficientes para comparar";
+        const max = Math.max(lastCount, prevCount);
+        const pct = max ? Math.round((Math.abs(lastCount - prevCount) / max) * 100) : 0;
+        compareMoviesBar.style.width = `${Math.min(100, Math.max(10, pct))}%`;
+        compareMoviesBar.style.background = lastCount >= prevCount ? "linear-gradient(90deg, var(--accent-4), var(--accent-2))" : "linear-gradient(90deg, var(--accent-3), var(--accent-2))";
+
+        // Comparativa series
+        const seriesMap = getSeriesYearStats(state.series);
+        const seriesYears = Array.from(seriesMap.keys()).sort((a, b) => b - a);
+        const [lastSY, prevSY] = getLastTwoYears(seriesYears);
+        const lastSC = seriesMap.get(lastSY) || 0;
+        const prevSC = seriesMap.get(prevSY) || 0;
+        compareSeriesText.textContent = (lastSY && prevSY)
+          ? getYearComparisonText(lastSC, prevSC, "series") + ` (${lastSY} vs ${prevSY})`
+          : "No hay datos suficientes para comparar";
+        const maxS = Math.max(lastSC, prevSC);
+        const pctS = maxS ? Math.round((Math.abs(lastSC - prevSC) / maxS) * 100) : 0;
+        compareSeriesBar.style.width = `${Math.min(100, Math.max(10, pctS))}%`;
+        compareSeriesBar.style.background = lastSC >= prevSC ? "linear-gradient(90deg, var(--accent-4), var(--accent-2))" : "linear-gradient(90deg, var(--accent-3), var(--accent-2))";
 
         chips.innerHTML = "";
         years.forEach((year) => {
@@ -622,6 +669,19 @@
         section.appendChild(grid);
         seriesContainer.appendChild(section);
       };
+
+
+      // --- DISEÑO MEJORADO ---
+      // Añadir clases para destacar tarjetas
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('.highlight-card').forEach(card => {
+          card.style.boxShadow = '0 0 0 3px var(--accent-2), var(--shadow)';
+          card.style.background = 'linear-gradient(120deg, #1f243b 80%, #67d2ff22)';
+        });
+        document.querySelectorAll('.accent-2').forEach(card => {
+          card.style.borderColor = 'var(--accent-2)';
+        });
+      });
 
       moviesInput.addEventListener("change", (event) => {
         const file = event.target.files[0];
